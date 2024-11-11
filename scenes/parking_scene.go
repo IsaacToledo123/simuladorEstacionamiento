@@ -3,7 +3,7 @@ package scenes
 import (
     "fmt"
     "image/color"
-    "time"
+    _"time"
     "strconv"
     "fyne.io/fyne/v2"
     "fyne.io/fyne/v2/canvas"
@@ -17,11 +17,9 @@ type ParkingScene struct {
     window         fyne.Window
     simulation     *services.Simulation
     spacesLabel    *widget.Label
-    statsLabel     *widget.Label
     logBox         *widget.TextGrid
     startButton    *widget.Button
     stopButton     *widget.Button
-    parkingGrid    *fyne.Container
     spaceIcons     []*canvas.Rectangle
     carImages      []*canvas.Image
     queueIcons     []*canvas.Rectangle
@@ -35,7 +33,6 @@ func NewParkingScene(window fyne.Window) *ParkingScene {
     scene := &ParkingScene{
         window:      window,
         spacesLabel: widget.NewLabel("Espacios disponibles: " + strconv.Itoa(services.PARKING_CAPACITY)),
-        statsLabel:  widget.NewLabel("Estadísticas"),
         logBox:      widget.NewTextGrid(),
         carImages:   make([]*canvas.Image, services.PARKING_CAPACITY),
         maxQueueSize: services.MAX_QUEUE_SIZE,
@@ -43,7 +40,7 @@ func NewParkingScene(window fyne.Window) *ParkingScene {
     scene.setupUI()
 
     // Establece el tamaño inicial y fija el tamaño de la ventana
-    scene.window.Resize(fyne.NewSize(1024, 768))
+    scene.window.Resize(fyne.NewSize(100, 168))
     scene.window.SetFixedSize(true)
 
     return scene
@@ -55,7 +52,7 @@ func (s *ParkingScene) setupUI() {
     s.stopButton = widget.NewButtonWithIcon("Detener", theme.MediaStopIcon(), s.handleStop)
     s.stopButton.Disable()
     s.statsContainer = container.NewVBox(
-        widget.NewLabelWithStyle("🎮 Estadísticas del Juego", fyne.TextAlignCenter, fyne.TextStyle{Bold: true, Monospace: true}),
+        widget.NewLabelWithStyle("🎮", fyne.TextAlignCenter, fyne.TextStyle{Bold: true, Monospace: true}),
         widget.NewSeparator(),
     )
     s.setupParkingLot()
@@ -96,7 +93,6 @@ func (s *ParkingScene) setupUI() {
     s.window.SetContent(mainContainer)
     s.simulation = services.NewSimulation(s.updateUI)
     s.simulation.SetQueueUpdateCallback(s.updateQueueVisual)
-    go s.updateStats()
 }
 
 func (s *ParkingScene) updateQueueVisual(queueSize int) {
@@ -139,7 +135,7 @@ func (s *ParkingScene) setupParkingLot() {
     s.spaceIcons = make([]*canvas.Rectangle, services.PARKING_CAPACITY)
     for i := 0; i < services.PARKING_CAPACITY; i++ {
         space := canvas.NewRectangle(color.RGBA{50, 50, 50, 255})
-        space.SetMinSize(fyne.NewSize(100, 150))
+        space.SetMinSize(fyne.NewSize(50, 100))
         s.spaceIcons[i] = space
         spaceNum := canvas.NewText(fmt.Sprintf("P%d", i+1), color.White)
         spaceNum.TextSize = 20
@@ -167,23 +163,6 @@ func (s *ParkingScene) createRoad() fyne.CanvasObject {
     return container.NewStack(road, lines)
 }
 
-func (s *ParkingScene) updateStats() {
-    ticker := time.NewTicker(time.Second)
-    for range ticker.C {
-        stats := s.simulation.GetStats()
-        avgWait := s.simulation.GetAverageWaitTime()
-        avgPark := s.simulation.GetAverageParkTime()
-        s.statsContainer.Objects = []fyne.CanvasObject{
-            widget.NewLabelWithStyle("🎮 Estadísticas del Juego", fyne.TextAlignCenter, fyne.TextStyle{Bold: true}),
-            widget.NewSeparator(),
-            widget.NewLabel(fmt.Sprintf("🚗 Vehículos totales: %d", stats.ProcessedVehicles)),
-            widget.NewLabel(fmt.Sprintf("⏱️ Tiempo promedio de espera: %.1fs", avgWait.Seconds())),
-            widget.NewLabel(fmt.Sprintf("⌛ Tiempo máximo de espera: %.1fs", stats.MaxWaitingTime.Seconds())),
-            widget.NewLabel(fmt.Sprintf("🕐 Tiempo promedio estacionado: %.1fs", avgPark.Seconds())),
-        }
-        s.statsContainer.Refresh()
-    }
-}
 
 func (s *ParkingScene) handleStart() {
     s.startButton.Disable()

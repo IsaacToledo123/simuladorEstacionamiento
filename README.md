@@ -6,8 +6,6 @@ Un simulador interactivo que modela el comportamiento de un estacionamiento util
 
 Estas instrucciones te permitirán obtener una copia del proyecto en funcionamiento en tu máquina local para propósitos de desarrollo y pruebas.
 
-Mira **Despliegue** para conocer cómo desplegar el proyecto.
-
 ### Pre-requisitos 📋
 
 Necesitarás tener instalado **Go** y el framework **Fyne**:
